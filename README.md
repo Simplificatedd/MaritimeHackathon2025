@@ -44,6 +44,18 @@
     ```
     pip install -r requirements.txt
     ```
+5. Unzip fine-tuned-model.zip:
+    ```
+    unzip fine-tuned-model.zip
+    ```
+    or on Windows Command Prompt:
+    ```
+    tar -xf fine-tuned-model.zip
+    ```
+    or on Windows Powershell:
+    ```
+    Expand-Archive -Path "fine-tuned-model.zip"
+    ```
 
 ## Usage
 1. Place CSV file with missing "annotation_severity" column into the MaritimeHackathon2025 directory (main directory).
