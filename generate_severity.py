@@ -15,7 +15,7 @@ model = BertForSequenceClassification.from_pretrained(model_path)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load the DataFrame
-df = pd.read_csv('cleaned_data/test_cleaned.csv')
+df = pd.read_csv('input.csv')
 
 # Duplicate the DataFrame
 df_manipulate = df.copy()
