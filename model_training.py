@@ -22,7 +22,7 @@ y = full_data["annotation_severity"].tolist()
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 # Load tokenizer
-model_name = "bert-base-uncased"  # Replace with the desired model name
+model_name = "PowerInfer/SmallThinker-3B-Preview"  # Replace with the desired model name
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Tokenization function
@@ -89,7 +89,7 @@ from transformers import get_scheduler
 optimizer = AdamW(model.parameters(), lr=5e-5)
 
 # Scheduler
-num_training_steps = len(train_loader) * 3  # 3 epochs
+num_training_steps = len(train_loader) * 2  # 2 epochs
 lr_scheduler = get_scheduler("linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps)
 
 # Loss function
@@ -148,7 +148,7 @@ def train_model(model, train_loader, val_loader, optimizer, scheduler, loss_fn, 
 
 train_model(model, train_loader, val_loader, optimizer, lr_scheduler, loss_fn, epochs=3)
 
-model.save_pretrained("./pytorch-fine-tuned-model")
-tokenizer.save_pretrained("./pytorch-fine-tuned-model")
+model.save_pretrained("./smallthinker-fine-tuned-model")
+tokenizer.save_pretrained("./smallthinker-fine-tuned-model")
 
 print("Model and tokenizer saved.")
