@@ -3,26 +3,43 @@ from sklearn.model_selection import train_test_split
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from torch.utils.data import DataLoader, Dataset
 import torch
+from sklearn.preprocessing import LabelEncoder
+from torch.optim import AdamW
+from transformers import get_scheduler
+from tqdm import tqdm
 
 # Load CSV files
 train_csv_path = "cleaned_data/training.csv"  # Replace with your training CSV file path
 val_csv_path = "cleaned_data/validation.csv"  # Replace with your validation CSV file path
-
 train_df = pd.read_csv(train_csv_path)
 val_df = pd.read_csv(val_csv_path)
 
-# Combine datasets for tokenization
+# Combine datasets for preprocessing
 full_data = pd.concat([train_df, val_df], axis=0)
 
-# Prepare features (X) and labels (y)
-X = full_data.drop("annotation_severity", axis=1).apply(lambda row: " ".join(map(str, row)), axis=1).tolist()
+# Combine high-weight features into a single string
+high_weight_features = ["deficiency_code", "Deficiency/Finding", "Description Overview", "Detainable Deficiency"]
+low_weight_features = ["age", "VesselGroup", "Corrective Action", "Root Cause Analysis", "PortId", "Immediate Causes"]
+
+def preprocess_row(row):
+    high_weight_text = " ".join([str(row[col]) for col in high_weight_features])
+    low_weight_text = " ".join([str(row[col]) for col in low_weight_features])
+    return f"{high_weight_text} [SEP] {low_weight_text}"
+
+# Apply preprocessing to the dataset
+X = full_data.apply(preprocess_row, axis=1).tolist()
 y = full_data["annotation_severity"].tolist()
+
+# Combine datasets for tokenization
+# Encode labels
+label_encoder = LabelEncoder()
+y = label_encoder.fit_transform(y)
 
 # Split into training and validation sets
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 # Load tokenizer
-model_name = "PowerInfer/SmallThinker-3B-Preview"  # Replace with the desired model name
+model_name = "bert-base-uncased"  # Replace with the desired model name
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Tokenization function
@@ -71,19 +88,10 @@ val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)
 num_labels = len(set(y)) # number of unique labels
 print(f"Unique labels: {set(y)}, Number of labels: {num_labels}")
 
-from sklearn.preprocessing import LabelEncoder
-
-label_encoder = LabelEncoder()
-y = label_encoder.fit_transform(y)
-y_train = label_encoder.transform(y_train)
-y_val = label_encoder.transform(y_val)
 num_labels = len(label_encoder.classes_)
 print(f"Label mapping: {dict(enumerate(label_encoder.classes_))}")
 
 model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
-
-from torch.optim import AdamW
-from transformers import get_scheduler
 
 # Optimizer
 optimizer = AdamW(model.parameters(), lr=5e-5)
@@ -92,16 +100,18 @@ optimizer = AdamW(model.parameters(), lr=5e-5)
 num_training_steps = len(train_loader) * 2  # 2 epochs
 lr_scheduler = get_scheduler("linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps)
 
+# Training loop
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
+
 # Loss function
 loss_fn = torch.nn.CrossEntropyLoss()
-
-from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 # Training loop
-def train_model(model, train_loader, val_loader, optimizer, scheduler, loss_fn, epochs=3):
+def train_model(model, train_loader, val_loader, optimizer, scheduler, loss_fn, epochs=2):
     for epoch in range(epochs):
         print(f"Epoch {epoch + 1}/{epochs}")
         
@@ -146,9 +156,9 @@ def train_model(model, train_loader, val_loader, optimizer, scheduler, loss_fn, 
         print(f"Validation Accuracy: {correct / total}")
 
 
-train_model(model, train_loader, val_loader, optimizer, lr_scheduler, loss_fn, epochs=3)
+train_model(model, train_loader, val_loader, optimizer, lr_scheduler, loss_fn, epochs=2)
 
-model.save_pretrained("./smallthinker-fine-tuned-model")
-tokenizer.save_pretrained("./smallthinker-fine-tuned-model")
+model.save_pretrained("./pytorch-fine-tuned-model")
+tokenizer.save_pretrained("./pytorch-fine-tuned-model")
 
 print("Model and tokenizer saved.")
