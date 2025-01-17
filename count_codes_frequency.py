@@ -27,7 +27,7 @@ word_counts_df['Code'] = word_counts_df['Code'].apply(lambda x: x.zfill(5))
 word_counts_df = word_counts_df.sort_values(by="Count", ascending=False)
 
 # Save the results to a CSV file
-output_file = "deficiency_code_counts.csv"
+output_file = "misc/deficiency_code_counts.csv"
 word_counts_df.to_csv(output_file, index=False)
 
 print(f"Deficiency counts saved to {output_file}")

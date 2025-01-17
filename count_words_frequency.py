@@ -24,7 +24,7 @@ word_counts_df = pd.DataFrame(word_counts.items(), columns=["Word", "Count"])
 word_counts_df = word_counts_df.sort_values(by="Count", ascending=False)
 
 # Save the results to a CSV file
-output_file = "word_counts.csv"
+output_file = "misc/word_counts.csv"
 word_counts_df.to_csv(output_file, index=False)
 
 print(f"Word counts saved to {output_file}")
