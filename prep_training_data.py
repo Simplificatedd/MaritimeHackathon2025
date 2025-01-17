@@ -42,11 +42,11 @@ train_df = train_df.drop(columns=["PscInspectionId", "Deficiency Code"])
 # Function to map annotation_severity values to integers
 def map_severity(severity):
     if severity == "Low":
-        return 3
+        return 1
     elif severity == "Medium":
-        return 7
+        return 2
     elif severity == "High":
-        return 10
+        return 3
     else:
         return 0
 
