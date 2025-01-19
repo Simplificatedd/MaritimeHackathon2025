@@ -1,3 +1,9 @@
 
 .DS_Store
 test.py
+pytorch-fine-tuned-model/config.json
+pytorch-fine-tuned-model/model.safetensors
+pytorch-fine-tuned-model/special_tokens_map.json
+pytorch-fine-tuned-model/tokenizer.json
+pytorch-fine-tuned-model/tokenizer_config.json
+pytorch-fine-tuned-model/vocab.txt
